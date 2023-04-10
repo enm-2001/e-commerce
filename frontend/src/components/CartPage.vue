@@ -1,12 +1,12 @@
 <template>
-  <div id="page-wrap" v-if="cartItems">
+  <div id="page-wrap" v-if="cartItems.length > 0">
     <h1>Shopping Cart</h1>
     <div
       v-for="product in cartItems"
       :key="product.id"
       class="product-container"
     >
-      <img class="product-image" :src="product.imageUrl" />
+      <img class="product-image" :src="product.image_data[0]" />
       <div class="details-wrap">
         <h3>{{ product.name }}</h3>
         <p>&#8377; {{ product.price }}</p>
@@ -28,23 +28,29 @@
       <button class="remove-button" @click="removeFromCart(product.product_id)">
         Remove from Cart
       </button>
+      <!-- <router-link
+              :to="'/products/' + product.product_id"
+              class="router-link"
+              ><button class="remove-button">Details</button></router-link
+            > -->
     </div>
     <h3 id="total-price">Total: &#8377;{{ totalPrice }}</h3>
-    <router-link to="/checkout"
-      ><button id="checkout-button">Proceed to Checkout</button></router-link
-    >
+    <button id="checkout-button" @click="checkout">Proceed to Checkout</button>
   </div>
   <h2 v-else>Your cart is empty!!</h2>
 </template>
 
 <script>
 import axios from "axios";
-// import { cartItems } from "../fake-data";
+import { getImageUrl } from "@/utils";
+import router from "@/router/router";
+
 export default {
   name: "CartPage",
   data() {
     return {
       cartItems: [],
+      images: [],
     };
   },
   computed: {
@@ -90,12 +96,32 @@ export default {
         this.removeFromCart(product.product_id);
       }
     },
+    checkout() {
+      // console.log("ccc", this.totalPrice);
+      let orderItems = []
+      for(let i=0; i<this.cartItems.length; i++){
+        orderItems.push({ product_id: this.cartItems[i].product_id, quantity: this.cartItems[i].quantity });
+      }
+      router.push({ name: "checkout", query: { totalPrice: this.totalPrice, orderItems: JSON.stringify(orderItems) } });
+    },
   },
   created() {
     const id = JSON.parse(localStorage.getItem("user")).user_id;
     axios
       .get(`http://localhost:5000/api/users/${id}/cart`)
-      .then((res) => (this.cartItems = res.data))
+      .then((res) => {
+        const products = res.data;
+        for (let i = 0; i < products.length; i++) {
+          if (products[i].image_data.length > 0) {
+            const url = getImageUrl(products[i].image_data[0]);
+            this.images.push(url);
+            products[i].image_data = this.images;
+            this.images = [];
+          }
+        }
+        this.cartItems = products;
+        console.log(this.cartItems);
+      })
       .catch((err) => console.log(err));
   },
 };
@@ -128,7 +154,7 @@ h1 {
 
 .product-image {
   flex: 1;
-  height: 100px;
+  height: 120px;
   max-width: 100px;
 }
 
@@ -163,7 +189,8 @@ input[type="text"] {
   border-radius: 0px;
   background-color: gray;
 }
-h2{
+h2 {
+  margin-top: 90px;
   text-align: center;
 }
 </style>

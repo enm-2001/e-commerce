@@ -13,16 +13,13 @@
      
       <label for="pwd">Password</label>
       <input type="password" id="pwd" v-model="formData.pwd" required />
-      
-      <label for="address">Address</label>
-      <input type="text" id="address" v-model="formData.address" required>
 
       <label for="type">User type</label>
       <div class="radio">
       <input type="radio" id="type" v-model="formData.type" value="admin"/>Admin
       <input type="radio" id="type" v-model="formData.type" value="user"/>User
       </div>
-      <br />
+       <br />
 
       <button type="submit">Register</button>
       <br>
@@ -43,7 +40,6 @@ export default {
         name: "",
         email: "",
         pwd: "",
-        address: "",
         type: "",
       },
       userExists : false

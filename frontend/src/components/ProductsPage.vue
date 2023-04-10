@@ -2,12 +2,12 @@
   <div id="page-wrap">
     <div class="grid-wrap">
       <div
-        v-for="product in items"
+        v-for="product in products"
         :key="product.product_id"
         class="product-item"
       >
         <!-- <img src="../assets/attire1.webp" /> -->
-        <img v-bind:src="product.image" />
+        <img :src="product.image_data[0]" />
         <h3 class="product-name">{{ product.name }}</h3>
         <p class="product-price">&#8377;{{ product.price }}</p>
         <router-link :to="'/products/' + product.product_id">
@@ -20,37 +20,53 @@
 
 <script>
 import axios from "axios";
+import { getImageUrl } from "@/utils";
+
 export default {
   name: "ProductsPage",
-  props: ["products"],
+  props: ["term"],
+  // query: [],
   data() {
     return {
-      items: [],
+      products: [],
       results: [],
+      images: [],
     };
   },
   methods: {
-    searchProduct(searchTerm){
+    searchProduct(searchTerm) {
       console.log("sssssss");
-      this.items = this.items.filter(item => item.name == searchTerm)
-    }
+      this.products = this.products.filter((item) => item.name == searchTerm);
+    },
   },
   async created() {
-    const result = await axios.get("http://localhost:5000/api/products");
-    const items = result.data;
-    this.results = items;
-    this.items = items;
-    // console.log(this.results);
+    const response = await axios.get("http://localhost:5000/api/products");
+    this.results = response.data
+    const products = response.data;
+    console.log(response.data);
+    for (let i = 0; i < products.length; i++) {
+      // console.log(products[i].image_data);
+      if (products[i].image_data.length > 0) {
+        const url = getImageUrl(products[i].image_data[0]);
+        // console.log(url);
+        this.images.push(url);
+
+        products[i].image_data = this.images;
+        this.images = [];
+      }
+
+      // console.log(products[i].image_data);
+    }
+
+    this.products = products;
   },
-  // mounted() {
-  //   if (Object.prototype.hasOwnProperty.call(this.$props, "products")) {
-  //     this.items = this.products;
-  //     console.log("iiiii", this.items);
-  //   } else {
-  //     this.items = this.results;
-  //     // console.log(this.items);
-  //   }
-  // },
+  watch: {
+    $route() {
+      console.log(this.$route.query.term);
+      this.products = this.results
+      this.searchProduct(this.$route.query.term);
+    },
+  },
 };
 </script>
 

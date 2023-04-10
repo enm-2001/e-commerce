@@ -11,7 +11,7 @@
         v-model="searchTerm"
         placeholder="Search..."
       />
-      <button class="search-btn" @click="searchProduct">Search</button>
+      <button class="search-btn" @click="searchProduct(searchTerm)">Search</button>
     </div>
     <!-- <div v-if="products">
       <h1>eeexiist</h1>
@@ -35,15 +35,13 @@
 </template>
 
 <script>
-// import router from "@/router/router";
-// import ProductsPage from './ProductsPage.vue'
-import axios from "axios";
+import router from '@/router/router';
 export default {
   name: "NavBar",
   components: {
     // ProductsPage
   },
-  emit: ["options", "search"],
+  emit: ["options"],
   data() {
     return {
       showMenu: false,
@@ -57,17 +55,10 @@ export default {
       this.toggle = !this.toggle;
       this.$emit("options", this.toggle);
     },
-    searchProduct() {
-      // this.products = this.products.filter(item => item.name.toLowerCase().includes(this.searchTerm.toLowerCase()))
-      // console.log("pppp",this.products);
-      this.$emit("search", this.searchTerm);
+    searchProduct(searchTerm) {
+      router.push({ path: '/products', query: { term: searchTerm } })
       // console.log(this.searchTerm);
     },
-  },
-  async created() {
-    const result = await axios.get("http://localhost:5000/api/products");
-    const products = result.data;
-    this.products = products;
   },
 };
 </script>

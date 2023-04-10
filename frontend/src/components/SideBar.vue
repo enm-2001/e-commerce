@@ -1,16 +1,31 @@
 <template>
-  <div class="sidebar">
+  <div v-if="type == 'user' || type == ''" class="sidebar">
     <ul>
-      <!-- <li><router-link to="/">Home</router-link></li> -->
-      <!-- <li><router-link to="/orders">Orders</router-link></li> -->
       <li>
         <button @click="cart" active-class="active" class="link">Cart</button>
       </li>
+      <li v-if="userLogged"><button @click="history" class="link">My Orders</button></li>
       <li v-if="userLogged"><button @click="logout" class="link">Logout</button></li>
       <ul v-else>
         <li><button @click="login" class="link">Login</button></li>
         <li><button @click="signup" class="link">Signup</button></li>
         </ul>
+    </ul>
+  </div>
+  <div v-else class="sidebar">
+    <ul>
+      <li>
+        <button @click="products" active-class="active" class="link">Products</button>
+      </li>
+      <li>
+        <button @click="users" active-class="active" class="link">Users</button>
+      </li>
+      <li>
+        <button @click="orders" active-class="active" class="link">Orders</button>
+      </li>
+      <li>
+        <button @click="logout" active-class="active" class="link">Logout</button>
+      </li>
     </ul>
   </div>
 </template>
@@ -21,7 +36,8 @@ export default {
   name: "SideBar",
   data(){
     return{
-        userLogged: false
+        userLogged: false,
+        type: ''
     }
   },
   methods: {
@@ -41,16 +57,37 @@ export default {
     login(){
         this.$emit("options", (this.toggle = false));
         router.push("/login");
+    },
+    signup(){
+        this.$emit("options", (this.toggle = false));
+        router.push("/signup");
+    },
+    products(){
+        this.$emit("options", (this.toggle = false));
+        router.push("/adminproducts");
+    },
+    users(){
+        this.$emit("options", (this.toggle = false));
+        router.push("/users");
+    },
+    orders(){
+        this.$emit("options", (this.toggle = false));
+        router.push("/orders");
+    },
+    history(){
+        this.$emit("options", (this.toggle = false));
+        router.push("/myorders");
     }
   },
   updated(){
     if(localStorage.getItem('user')){    
-        this.userLogged = true    
+        this.userLogged = true 
+        this.type = JSON.parse(localStorage.getItem('user')).user_type   
     }
     else{
         this.userLogged = false
     }
-  }
+  },
 };
 </script>
 

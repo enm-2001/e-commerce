@@ -65,7 +65,7 @@ export default {
                   router.push("/products");
                 }
                 else{
-                  router.push("/admin")
+                  router.push("/adminproducts")
                 }
             }
             else{

@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <NavBar @options="sidebar" @search="searchProduct"/>
+    <NavBar @options="sidebar"/>
     <SideBar v-show="showSide" @options="sidebar"/>
     <!-- <router-view @search="searchProduct"/>     -->
     <router-view @options="sidebar"/>
@@ -16,7 +16,8 @@ export default {
   name: "App",
   data(){
     return{
-      showSide: false
+      showSide: false,
+      // term: ''
     }
   },
   components: {
@@ -27,13 +28,18 @@ export default {
     sidebar(toggle){
       this.showSide = toggle
     },
-    searchProduct(searchTerm){
-      // const route = useRoute()
-      // console.log(this.$route.fullPath);
-      if(this.$route.fullPath == '/products'){
-        console.log(searchTerm);
-      }
-    }
+    // searchProduct(searchTerm){
+    //   // const route = useRoute()
+    //   // console.log(this.$route.fullPath);
+    //   console.log("called");
+    //   if(this.$route.fullPath == '/products'){
+    //     router.push({
+    //     path: '/products',
+    //     query: { term: searchTerm }
+    //   })
+    //   console.log(searchTerm);
+    //   }
+    // }
   }
 };
 </script>
@@ -48,7 +54,7 @@ export default {
 #page-wrap {
   margin: 60px auto;
   max-width: 800px;
-  min-height: 100vh;
+  min-height: 70vh;
 }
 
 button {

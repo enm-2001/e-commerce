@@ -53,6 +53,18 @@ form {
     cursor: pointer;
   }
 
+  .details{
+    display: block;
+    width: 80%;
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(54, 35, 158);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
   .update {
     display: block;
     width: 80%;
@@ -103,4 +115,8 @@ form {
   span{
     text-align: center;
     color: red;
+  }
+
+  .router-link {
+    text-decoration: none;
   }
