@@ -4,46 +4,16 @@ var cors = require('cors')
 const fs = require('fs')
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
+const nodemailer = require('nodemailer');
+const Mailgen = require('mailgen');
+// const handlebars = require('handlebars');
+const { EMAIL, PASSWORD } = require('./env.js')
 
 const app = express()
 app.use(cors())
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
-
-// app.post('/api/addproduct', (req, res) => {
-//     const { image_data, product } = req.body
-//     const images = []
-//     for (let i = 0; i < image_data.length; i++) {
-//         const file = image_data[i];
-//         const imageBuffer = fs.readFileSync(file);
-//         images.push(imageBuffer)
-//     }
-//     client.query(`insert into products(name, description, price, image_data) values('${product.name}', '${product.description}', '${product.price}', ${images})`, (err, result) => {
-//         if (!err) {
-//             // await client.query("COMMIT");
-//             res.status(200).send("Product submitted successfully");
-//         }
-//     })
-
-// })
-
-// app.post('/api/addproduct', (req, res) => {
-//     const { image_data, product } = req.body
-//     const images = []
-//     for (let i = 0; i < image_data.length; i++) {
-//         // const file = image_data[i];
-//         const imageBuffer = fs.readFileSync(image_data[i]);
-//         images.push(imageBuffer)
-//     }
-//     client.query(`insert into products(name, description, price, image_data) values('${product.name}', '${product.description}', '${product.price}', ${images})`, (err, result) => {
-//         if (!err) {
-//             // await client.query("COMMIT");
-//             res.status(200).send("Product submitted successfully");
-//         }
-//     })
-
-// })
 
 app.post("/api/addproduct", upload.array("images[]"), (req, res) => {
     const files = req.files;
@@ -268,12 +238,12 @@ app.delete('/api/users/:userId/cart/:productId', (req, res) => {
 
 app.post('/api/checkout', (req, res) => {
     const { formData, orderItems } = req.body
-    console.log(formData, orderItems);
+    // console.log(formData, orderItems);
     try {
         client.query('insert into orders(user_id, total_amount, order_date, address, payment_method, order_status) values($1, $2, $3, $4, $5, $6) RETURNING order_id', [formData.user_id, formData.total_amount, formData.order_date, formData.address, formData.payment, 'Processing'], (err, result) => {
             if (!err) {
                 const order_id = result.rows[0].order_id
-                console.log(order_id);
+                // console.log(order_id);
                 for (let i = 0; i < orderItems.length; i++) {
                     console.log(orderItems[i].product_id);
                     client.query(`insert into order_details(product_id, quantity, order_id) values($1, $2, $3)`, [orderItems[i].product_id, orderItems[i].quantity, order_id], (err, result) => {
@@ -283,7 +253,7 @@ app.post('/api/checkout', (req, res) => {
                         }
                     })
                 }
-                res.send({ orderSuccessful: true })
+                res.send({ order_id: order_id })
             }
         }
         )
@@ -293,6 +263,73 @@ app.post('/api/checkout', (req, res) => {
         res.status(500).send("Error while submitting the order");
     }
 
+})
+
+app.post('/api/mail', async (req, res) => {
+    const { order_id, name, email, order_date, total_amount, orderItems, payment_method } = req.body;
+    const orderedItems = [];
+  for (const item of orderItems) {
+    const result = await client.query(`select p.name, od.quantity from order_details od 
+      join orders o on od.order_id = o.order_id
+      join products p on od.product_id = p.product_id 
+      where p.product_id = ${item.product_id} and o.order_id = ${order_id}`);
+    if(result.rows.length > 0){
+        orderedItems.push({product_name: result.rows[0].name, quantity: result.rows[0].quantity});
+    }
+    
+  }
+  console.log(orderedItems);
+
+    let config = {
+        service : 'gmail',
+        auth : {
+            user: EMAIL,
+            pass: PASSWORD
+        }
+    }
+
+    let transporter = nodemailer.createTransport(config);
+
+    let MailGenerator = new Mailgen({
+        theme: "default",
+        product : {
+            name: "EcommWeb",
+            link : 'https://mailgen.js/'
+        }
+    })
+
+    let response = {
+        body: {
+            name : name,
+            intro: `Your order is placed! Your Order_date: ${order_date}, total amount: ${total_amount} Rs., payment_method: ${payment_method == "cod"? "Cash On Delivery" : "Via Debit/Credit Cart"}` ,
+            table : {
+                data : orderedItems
+            },
+            // order_date: order_date,
+            // total_amount: total_amount,
+            // payment_method: payment_method == "cod"? "Cash On Delivery" : "Via Debit/Credit Cart",
+            
+            outro: "Keep Shopping with us!"
+        },
+        
+    }
+
+    let mail = MailGenerator.generate(response)
+
+    let message = {
+        from : EMAIL,
+        to : email,
+        subject: "Order placed",
+        html: mail
+    }
+
+    transporter.sendMail(message).then(() => {
+        return res.status(201).json({
+            msg: "you should receive an email"
+        })
+    }).catch(error => {
+        return res.status(500).json({ error })
+    })
 })
 
 app.delete('/:user_id/emptyCart', (req, res) => {

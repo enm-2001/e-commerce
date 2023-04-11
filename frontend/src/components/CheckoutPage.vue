@@ -79,18 +79,31 @@ export default {
       this.formData.order_date = new Date().toLocaleDateString();
       this.formData.total_amount = this.$route.query.totalPrice;
 
+      const orderItems =  JSON.parse(this.$route.query.orderItems)
+
       axios
         .post("http://localhost:5000/api/checkout", {
           formData: this.formData,
-          orderItems: JSON.parse(this.$route.query.orderItems),
+          orderItems,
         })
         .then((res) => {
-          if (res.data.orderSuccessful) {
+          if (res.data.order_id) {
+            const order_id = res.data.order_id
             const user_id = JSON.parse(localStorage.getItem("user")).user_id;
             axios
               .delete(`http://localhost:5000/${user_id}/emptyCart`)
               .then((res) => {
                 if (res.data.emptyCart) {
+                  
+                  axios.post(`http://localhost:5000/api/mail`,{
+                    order_id,
+                    name: JSON.parse(localStorage.getItem("user")).name,
+                    email: JSON.parse(localStorage.getItem("user")).email,
+                    order_date: new Date().toLocaleDateString(),
+                    payment_method: this.formData.payment,
+                    total_amount: this.$route.query.totalPrice,
+                    orderItems
+                  })
                   this.placed = true;
                 }
               });
