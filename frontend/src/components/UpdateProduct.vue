@@ -103,6 +103,12 @@ export default {
     }
     },
   async created() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      router.push("/login");
+    } else if (user && user.user_type == "user") {
+      router.push("/products");
+    }
     const productId = this.$route.params.product_id;
     await axios.get(`http://localhost:5000/api/products/${productId}`).then((res) => {
       const product = res.data;

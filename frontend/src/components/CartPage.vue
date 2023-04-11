@@ -106,7 +106,13 @@ export default {
     },
   },
   created() {
-    const id = JSON.parse(localStorage.getItem("user")).user_id;
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      router.push("/login");
+    } else if (user && user.user_type == "admin") {
+      router.push("/products");
+    }
+    const id = user.user_id;
     axios
       .get(`http://localhost:5000/api/users/${id}/cart`)
       .then((res) => {

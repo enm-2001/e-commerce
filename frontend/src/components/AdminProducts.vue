@@ -49,6 +49,7 @@
 
 <script>
 import axios from "axios";
+import router from '@/router/router';
 // import router from '@/routes/routes'
 export default {
   name: "AdminProducts",
@@ -71,6 +72,12 @@ export default {
     },
   },
   async created() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      router.push("/login");
+    } else if (user && user.user_type == "user") {
+      router.push("/products");
+    }
     const response = await axios.get("http://localhost:5000/api/products");
     this.products = response.data
     this.products = this.products.sort((a, b) => {

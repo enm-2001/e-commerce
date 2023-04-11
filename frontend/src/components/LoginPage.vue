@@ -74,6 +74,12 @@ export default {
         })
         .catch(err => console.log(err));
     },
+  },
+  created(){
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      router.push("/products");
+    }
   }
 }
 </script>

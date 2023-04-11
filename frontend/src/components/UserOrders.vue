@@ -7,6 +7,7 @@
           <th>Quantity</th>
           <th>Amount</th>
           <th>Order Date</th>
+          <th>Status</th>
           <th>Product details</th>
         </tr>
       </thead>
@@ -16,6 +17,7 @@
           <td>{{ order.quantity }}</td>
           <td>{{ order.price * order.quantity }}</td>
           <td>{{ order.order_date }}</td>
+          <td>{{ order.order_status }}</td>
           <td>
             <router-link
               :to="'/products/' + order.product_id"
@@ -31,6 +33,7 @@
 
 <script>
 import axios from 'axios'
+import router from '@/router/router';
     export default {
         name: 'UserOrders',
         data(){
@@ -39,7 +42,13 @@ import axios from 'axios'
             }
         },
         created(){
-            const userId = JSON.parse(localStorage.getItem('user')).user_id
+            const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      router.push("/login");
+    } else if (user && user.user_type == "admin") {
+      router.push("/products");
+    }
+            const userId = user.user_id
             axios.get(`http://localhost:5000/api/${userId}/myorders`)
             .then(res => this.myOrders = res.data)
         }

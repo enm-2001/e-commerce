@@ -13,11 +13,6 @@
       />
       <button class="search-btn" @click="searchProduct(searchTerm)">Search</button>
     </div>
-    <!-- <div v-if="products">
-      <h1>eeexiist</h1>
-        <ProductsPage :products = "products"/>
-      </div>
-      <p v-else>No results found</p> -->
 
     <div class="info">
       <router-link to="/products" active-class="active" class="link">Home</router-link>
@@ -56,8 +51,8 @@ export default {
       this.$emit("options", this.toggle);
     },
     searchProduct(searchTerm) {
+      console.log(searchTerm);
       router.push({ path: '/products', query: { term: searchTerm } })
-      // console.log(this.searchTerm);
     },
   },
 };
@@ -75,6 +70,7 @@ export default {
   height: 60px;
   width: 100%;
   justify-content: center;
+  z-index: 1;
 }
 
 .info {

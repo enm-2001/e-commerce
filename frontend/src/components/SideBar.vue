@@ -1,19 +1,13 @@
 <template>
-  <div v-if="type == 'user' || type == ''" class="sidebar">
-    <ul>
+  <div v-if="userLogged" class="sidebar">
+    <ul v-if="type == 'user'">
       <li>
-        <button @click="cart" active-class="active" class="link">Cart</button>
+        <button @click="cart" class="link">Cart</button>
       </li>
-      <li v-if="userLogged"><button @click="history" class="link">My Orders</button></li>
-      <li v-if="userLogged"><button @click="logout" class="link">Logout</button></li>
-      <ul v-else>
-        <li><button @click="login" class="link">Login</button></li>
-        <li><button @click="signup" class="link">Signup</button></li>
-        </ul>
+      <li><button @click="history" class="link">My Orders</button></li>
+      <li><button @click="logout" class="link">Logout</button></li>
     </ul>
-  </div>
-  <div v-else class="sidebar">
-    <ul>
+    <ul v-else>
       <li>
         <button @click="products" active-class="active" class="link">Products</button>
       </li>
@@ -27,6 +21,13 @@
         <button @click="logout" active-class="active" class="link">Logout</button>
       </li>
     </ul>
+  </div>
+  <div v-else class="sidebar">
+    <ul>
+        <li><button @click="login" class="link">Login</button></li>
+        <li><button @click="signup" class="link">Signup</button></li>
+        </ul>
+    
   </div>
 </template>
 

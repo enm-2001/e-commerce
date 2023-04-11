@@ -71,6 +71,12 @@ export default {
           console.log(error);
         });
     },
+  },
+  created(){
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      router.push("/products");
+    }
   }
 }
 </script>

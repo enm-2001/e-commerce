@@ -66,7 +66,7 @@ app.post("/api/addproduct", upload.array("images[]"), (req, res) => {
 });
 
 app.put('/updateproduct/:product_id', upload.array("images[]"), (req, res) => {
-    const {product_id} = req.params
+    const { product_id } = req.params
     const files = req.files;
     const data = JSON.parse(req.body.product)
     console.log(data)
@@ -74,22 +74,22 @@ app.put('/updateproduct/:product_id', upload.array("images[]"), (req, res) => {
     let images = []
     console.log(images);
     console.log(data.image_data.length);
-    for(let i = 0; i< data.image_data.length; i++){
+    for (let i = 0; i < data.image_data.length; i++) {
 
         const dataUrl = data.image_data[i][0]
         // Extract the base64-encoded data
         const base64Data = dataUrl.split(",")[1];
 
-        if(base64Data != undefined){
+        if (base64Data != undefined) {
             // Decode the base64-encoded data into a binary array
             // console.log(base64Data);
-        const binaryData = atob(base64Data);
+            const binaryData = atob(base64Data);
 
-        // Create a Uint8Array from the binary array
-        const buffer = Buffer.from(binaryData, 'binary');
-        images.push(buffer)
+            // Create a Uint8Array from the binary array
+            const buffer = Buffer.from(binaryData, 'binary');
+            images.push(buffer)
         }
-        
+
 
     }
     // console.log(images)
@@ -101,34 +101,34 @@ app.put('/updateproduct/:product_id', upload.array("images[]"), (req, res) => {
     }
     console.log(images);
     const query = 'UPDATE products SET name = $1, description = $2, price = $3, image_data = $4 WHERE product_id = $5'
-client.query(query, [data.name, data.description, data.price, images, product_id],(err, result) => {
-  if (!err) {
-    console.log('Product updated successfully');
-    res.status(200).send('Product updated successfully');
-  } else {
-    console.log(err);
-  }
+    client.query(query, [data.name, data.description, data.price, images, product_id], (err, result) => {
+        if (!err) {
+            console.log('Product updated successfully');
+            res.status(200).send('Product updated successfully');
+        } else {
+            console.log(err);
+        }
 
     })
     client.end;
 })
 
-app.delete('/delete/:type/:id', (req, res) => { 
-    const {type, id} = req.params
+app.delete('/delete/:type/:id', (req, res) => {
+    const { type, id } = req.params
     let type_id = ''
     // console.log(type);
     // console.log(id);
-    if(type == 'products'){
+    if (type == 'products') {
         type_id = 'product_id'
     }
-    else{
+    else {
         type_id = 'user_id'
     }
-    client.query(`delete from ${type} where ${type_id} = ${id}`,(err, result) => {
-        if(!err){
+    client.query(`delete from ${type} where ${type_id} = ${id}`, (err, result) => {
+        if (!err) {
             res.send("Deletion was successful")
         }
-        else{
+        else {
             console.log(err);
         }
     })
@@ -267,41 +267,42 @@ app.delete('/api/users/:userId/cart/:productId', (req, res) => {
 })
 
 app.post('/api/checkout', (req, res) => {
-    const {formData, orderItems} = req.body
+    const { formData, orderItems } = req.body
     console.log(formData, orderItems);
-    try{
-    client.query('insert into orders(user_id, total_amount, order_date, address, payment_method) values($1, $2, $3, $4, $5) RETURNING order_id',[formData.user_id, formData.total_amount, formData.order_date, formData.address, formData.payment], (err, result) =>{
-        if(!err){
-            const order_id = result.rows[0].order_id
-            console.log(order_id);
-            for(let i=0; i < orderItems.length; i++){
-                console.log(orderItems[i].product_id);
-                client.query(`insert into order_details(product_id, quantity, order_id) values($1, $2, $3)`,[orderItems[i].product_id, orderItems[i].quantity, order_id],(err, result) => {
-                    if(err){
-                        console.log(err);
-                        // res.send({orderUnSuccessful: true})
-                    }
-                })
+    try {
+        client.query('insert into orders(user_id, total_amount, order_date, address, payment_method, order_status) values($1, $2, $3, $4, $5, $6) RETURNING order_id', [formData.user_id, formData.total_amount, formData.order_date, formData.address, formData.payment, 'Processing'], (err, result) => {
+            if (!err) {
+                const order_id = result.rows[0].order_id
+                console.log(order_id);
+                for (let i = 0; i < orderItems.length; i++) {
+                    console.log(orderItems[i].product_id);
+                    client.query(`insert into order_details(product_id, quantity, order_id) values($1, $2, $3)`, [orderItems[i].product_id, orderItems[i].quantity, order_id], (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            // res.send({orderUnSuccessful: true})
+                        }
+                    })
+                }
+                res.send({ orderSuccessful: true })
             }
-            res.send({orderSuccessful: true})    
         }
+        )
     }
-)}
     catch (err) {
         console.error(err);
         res.status(500).send("Error while submitting the order");
-      } 
-    
+    }
+
 })
 
 app.delete('/:user_id/emptyCart', (req, res) => {
-    const {user_id} = req.params
+    const { user_id } = req.params
     console.log(user_id);
     client.query(`delete from cart where user_id = ${user_id}`, (err, result) => {
-        if(!err){
-            res.send({emptyCart : true})
+        if (!err) {
+            res.send({ emptyCart: true })
         }
-        else{
+        else {
             console.log(err);
         }
     })
@@ -309,20 +310,33 @@ app.delete('/:user_id/emptyCart', (req, res) => {
 
 app.get('/api/orders', (req, res) => {
     client.query('select o.*, u.email from orders o join users u on o.user_id = u.user_id', (err, result) => {
-        if(!err){
+        if (!err) {
             res.send(result.rows)
         }
     })
 })
 
 app.get('/api/:userId/myorders', (req, res) => {
-    const {userId} = req.params
-    client.query(`select p.product_id, p.name, od.quantity, p.price, o.order_date from order_details od 
+    const { userId } = req.params
+    client.query(`select p.product_id, p.name, od.quantity, p.price, o.order_date, o.order_status from order_details od 
     join orders o on od.order_id = o.order_id
     join products p on od.product_id = p.product_id 
     where o.user_id = ${userId}`, (err, result) => {
-        if(!err){
+        if (!err) {
             res.send(result.rows)
+        }
+    })
+})
+
+app.put('/api/:orderId/status', (req, res) => {
+    const {orderId} = req.params
+    const {status} = req.body
+    client.query(`update orders set order_status = '${status}' where order_id = ${orderId}`, (err, result) => {
+        if(!err){
+            res.send("update was successful")
+        }
+        else{
+            console.log(err);
         }
     })
 })

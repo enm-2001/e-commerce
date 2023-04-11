@@ -16,7 +16,7 @@
       <img :src="image" />
     </div> -->
     <div id="product-details">
-      <h1>{{ product.name.toUpperCase() }}</h1>
+      <h1>{{ product.name }}</h1>
       <h3 id="price">&#8377;{{ product.price }}</h3>
       <button @click="addToCart(product.product_id)" id="add-to-cart">
         Add to cart
@@ -55,10 +55,15 @@ export default {
   },
   methods: {
     addToCart(product_id) {
-      if (!localStorage.getItem("user")) {
+      const user = JSON.parse(localStorage.getItem("user"))
+      if (!user) {
         router.push("/login");
-      } else {
-        const userId = JSON.parse(localStorage.getItem("user")).user_id;
+      } 
+      else if(user && user.user_type == 'admin'){
+        alert("Please login as a customer")
+      }
+      else {
+        const userId = user.user_id;
         const productId = product_id;
         const num = 1
         axios
@@ -119,11 +124,6 @@ img {
   width: 100%;
 }
 
-#price {
-  position: absolute;
-  top: 24px;
-  right: 16px;
-}
 
 span {
   color: green;

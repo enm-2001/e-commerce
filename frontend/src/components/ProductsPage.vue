@@ -35,8 +35,7 @@ export default {
   },
   methods: {
     searchProduct(searchTerm) {
-      console.log("sssssss");
-      this.products = this.products.filter((item) => item.name == searchTerm);
+      this.products = this.products.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
     },
   },
   async created() {
@@ -62,7 +61,6 @@ export default {
   },
   watch: {
     $route() {
-      console.log(this.$route.query.term);
       this.products = this.results
       this.searchProduct(this.$route.query.term);
     },
@@ -80,6 +78,7 @@ export default {
 
 .product-item {
   align-items: center;
+  text-align: center;
   border-radius: 8px;
   box-shadow: 0px 2px 5px #888;
   display: flex;
