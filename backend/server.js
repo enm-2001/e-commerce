@@ -202,7 +202,7 @@ app.post('/api/users/:userId/cart/:productId', (req, res) => {
             if (!err) {
                 // console.log(result.rows);
                 if (result.rows[0] == null) {
-                    client.query(`insert into cart(product_id, quantity, user_id) values(${productId}, 1, ${userId})`, (err, result) => {
+                    client.query(`insert into cart(product_id, quantity, user_id) values(${productId}, ${num}, ${userId})`, (err, result) => {
                         if (!err) {
                             res.send("Insertion was successful")
                         }

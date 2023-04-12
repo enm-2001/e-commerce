@@ -18,7 +18,19 @@
     <div id="product-details">
       <h1>{{ product.name }}</h1>
       <h3 id="price">&#8377;{{ product.price }}</h3>
-      <button @click="addToCart(product.product_id)" id="add-to-cart">
+      <!-- <div class="quantity">
+          Quantity:
+          <span class="quantity">
+            <button @click="updateQuantity(product, -1)" class="quantityBtn">
+              -
+            </button>
+            <input type="text" v-model="quantity" />
+            <button @click="updateQuantity(product, 1)" class="quantityBtn">
+              +
+            </button></span
+          >
+        </div> -->
+      <button @click="addToCart(product)" id="add-to-cart">
         Add to cart
       </button>
       <span v-if="addedToCart">Item add to cart successfully!!</span>
@@ -51,20 +63,25 @@ export default {
       product: {},
       images: [],
       addedToCart: false,
+      // quantity: 0
     };
   },
   methods: {
-    addToCart(product_id) {
+    // updateQuantity(product, number){
+    //   this.quantity = this.quantity + number
+      
+    // },
+    addToCart(product) {
       const user = JSON.parse(localStorage.getItem("user"))
       if (!user) {
-        router.push("/login");
+        router.push(`/login/${product.product_id}/1`)
       } 
       else if(user && user.user_type == 'admin'){
         alert("Please login as a customer")
       }
       else {
         const userId = user.user_id;
-        const productId = product_id;
+        const productId = product.product_id;
         const num = 1
         axios
           .post(`http://localhost:5000/api/users/${userId}/cart/${productId}`,{num})
@@ -74,6 +91,10 @@ export default {
     },
   },
   async created() {
+    if(this.$route.query.toCart){
+      this.addedToCart = true
+      console.log("iiiii",this.addedToCart);
+    }
     const id = this.$route.params.product_id;
     const result = await axios.get(`http://localhost:5000/api/products/${id}`);
     const product = result.data;
@@ -128,6 +149,19 @@ img {
 span {
   color: green;
   /* text-align: center; */
+}
+
+.quantity {
+  display: flex;
+  margin-right: 0px;
+  max-width: 120px;
+  align-items: center;
+}
+
+.quantityBtn {
+  height: 30px;
+  border-radius: 0px;
+  background-color: gray;
 }
 
 #carousel{

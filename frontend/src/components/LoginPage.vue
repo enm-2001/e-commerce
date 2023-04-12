@@ -31,6 +31,8 @@ export default {
       password: '',
       incorrect: false,
       userExists: true,
+      product_id: '',
+    quantity: '',
     }
   },
   methods: {
@@ -62,7 +64,22 @@ export default {
                 localStorage.setItem("user", JSON.stringify(res.data));
                 if(res.data.user_type == 'user'){
                   this.$emit("options", (this.toggle = false));
-                  router.push("/products");
+
+                  if(this.product_id != '' && this.quantity != ''){
+                    const userId = res.data.user_id
+                    const num = this.quantity
+                    const productId = this.product_id
+                    axios.post(`http://localhost:5000/api/users/${userId}/cart/${productId}`, { num })
+                    .then(res => {
+                      console.log(res);
+                      router.push({path : `/products/${productId}`, query: {toCart : true}})
+                    })
+                    
+                  }
+                  else{
+                    router.push("/products");
+                  }
+                  
                 }
                 else{
                   router.push("/adminproducts")
@@ -79,6 +96,10 @@ export default {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user) {
       router.push("/products");
+    }
+    else if(this.$route.params){
+      this.product_id = this.$route.params.productId,
+    this.quantity =  this.$route.params.quantity
     }
   }
 }
