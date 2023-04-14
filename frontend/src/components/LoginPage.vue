@@ -97,9 +97,9 @@ export default {
     if (user) {
       router.push("/products");
     }
-    else if(this.$route.params){
-      this.product_id = this.$route.params.productId,
-    this.quantity =  this.$route.params.quantity
+    else if(this.$route.query.productId != null){
+      this.product_id = this.$route.query.productId,
+    this.quantity =  this.$route.query.quantity
     }
   }
 }

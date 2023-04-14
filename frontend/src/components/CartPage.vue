@@ -82,7 +82,9 @@ export default {
     },
     updateQuantity(product, num) {
       // let qty = product.quantity
-      product.quantity = product.quantity + num;
+      if((num > 0 && product.quantity != product.avail_quantity) || (num < 0 && product.quantity != 0)){
+        product.quantity = product.quantity + num
+      }
       if (product.quantity > 0) {
         console.log(product.quantity);
         const userId = JSON.parse(localStorage.getItem("user")).user_id;

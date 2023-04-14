@@ -20,7 +20,6 @@ import UserOrders from '../components/UserOrders'
 const routes = [
   // { path: '/', component: HomePage },
   { path: '/login', component: LoginPage },
-  { path: '/login/:productId/:quantity', component: LoginPage },
   { path: '/signup', component: SignupPage },
   { path: '/products', component: ProductsPage },
   { path: '/products/:product_id', component: ProductDetail, props: true },

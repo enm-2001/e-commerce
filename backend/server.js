@@ -3,7 +3,10 @@ const client = require('./config/connection.js')
 var cors = require('cors')
 const fs = require('fs')
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ dest: "uploads/" , limits: {
+    fileSize: 1024 * 1024 * 5, // 5 MB
+    fieldSize: 1024 * 1024 * 5, // 5 MB
+  }});
 const nodemailer = require('nodemailer');
 const Mailgen = require('mailgen');
 // const handlebars = require('handlebars');
@@ -14,6 +17,7 @@ app.use(cors())
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
+
 
 app.post("/api/addproduct", upload.array("images[]"), (req, res) => {
     const files = req.files;
@@ -236,11 +240,11 @@ app.delete('/api/users/:userId/cart/:productId', (req, res) => {
     client.end;
 })
 
-app.post('/api/checkout', (req, res) => {
+app.post('/api/checkout', async (req, res) => {
     const { formData, orderItems } = req.body
     // console.log(formData, orderItems);
     try {
-        client.query('insert into orders(user_id, total_amount, order_date, address, payment_method, order_status) values($1, $2, $3, $4, $5, $6) RETURNING order_id', [formData.user_id, formData.total_amount, formData.order_date, formData.address, formData.payment, 'Processing'], (err, result) => {
+        await client.query('insert into orders(user_id, total_amount, order_date, address, payment_method, order_status) values($1, $2, $3, $4, $5, $6) RETURNING order_id', [formData.user_id, formData.total_amount, formData.order_date, formData.address, formData.payment, 'Processing'], (err, result) => {
             if (!err) {
                 const order_id = result.rows[0].order_id
                 // console.log(order_id);
@@ -250,6 +254,10 @@ app.post('/api/checkout', (req, res) => {
                         if (err) {
                             console.log(err);
                             // res.send({orderUnSuccessful: true})
+                        }
+                        else {
+                            client.query(`update products set avail_quantity = avail_quantity - ${orderItems[i].quantity} where product_id = ${orderItems[i].product_id}`)
+                            console.log("upppppdatedd")
                         }
                     })
                 }
@@ -268,21 +276,21 @@ app.post('/api/checkout', (req, res) => {
 app.post('/api/mail', async (req, res) => {
     const { order_id, name, email, order_date, total_amount, orderItems, payment_method } = req.body;
     const orderedItems = [];
-  for (const item of orderItems) {
-    const result = await client.query(`select p.name, od.quantity from order_details od 
+    for (const item of orderItems) {
+        const result = await client.query(`select p.name, od.quantity from order_details od 
       join orders o on od.order_id = o.order_id
       join products p on od.product_id = p.product_id 
       where p.product_id = ${item.product_id} and o.order_id = ${order_id}`);
-    if(result.rows.length > 0){
-        orderedItems.push({product_name: result.rows[0].name, quantity: result.rows[0].quantity});
+        if (result.rows.length > 0) {
+            orderedItems.push({ product_name: result.rows[0].name, quantity: result.rows[0].quantity });
+        }
+
     }
-    
-  }
-  console.log(orderedItems);
+    console.log(orderedItems);
 
     let config = {
-        service : 'gmail',
-        auth : {
+        service: 'gmail',
+        auth: {
             user: EMAIL,
             pass: PASSWORD
         }
@@ -292,33 +300,33 @@ app.post('/api/mail', async (req, res) => {
 
     let MailGenerator = new Mailgen({
         theme: "default",
-        product : {
+        product: {
             name: "EcommWeb",
-            link : 'https://mailgen.js/'
+            link: 'https://ecommweb.js/'
         }
     })
 
     let response = {
         body: {
-            name : name,
-            intro: `Your order is placed! Your Order_date: ${order_date}, total amount: ${total_amount} Rs., payment_method: ${payment_method == "cod"? "Cash On Delivery" : "Via Debit/Credit Cart"}` ,
-            table : {
-                data : orderedItems
+            name: name,
+            intro: `Your order is placed! Your Order_date: ${order_date}, total amount: ${total_amount} Rs., payment_method: ${payment_method == "cod" ? "Cash On Delivery" : "Via Debit/Credit Cart"}`,
+            table: {
+                data: orderedItems
             },
             // order_date: order_date,
             // total_amount: total_amount,
             // payment_method: payment_method == "cod"? "Cash On Delivery" : "Via Debit/Credit Cart",
-            
+
             outro: "Keep Shopping with us!"
         },
-        
+
     }
 
     let mail = MailGenerator.generate(response)
 
     let message = {
-        from : EMAIL,
-        to : email,
+        from: EMAIL,
+        to: email,
         subject: "Order placed",
         html: mail
     }
@@ -366,13 +374,13 @@ app.get('/api/:userId/myorders', (req, res) => {
 })
 
 app.put('/api/:orderId/status', (req, res) => {
-    const {orderId} = req.params
-    const {status} = req.body
+    const { orderId } = req.params
+    const { status } = req.body
     client.query(`update orders set order_status = '${status}' where order_id = ${orderId}`, (err, result) => {
-        if(!err){
+        if (!err) {
             res.send("update was successful")
         }
-        else{
+        else {
             console.log(err);
         }
     })

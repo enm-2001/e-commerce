@@ -1,5 +1,6 @@
 <template>
-  <div id="page-wrap" v-if="product">
+<div  v-if="product">
+  <div id="page-wrap">
     <div id="carousel">
     <Carousel>
     <Slide v-for="(image, index) in product.image_data" :key="index">
@@ -12,16 +13,15 @@
     </template>
   </Carousel>
   </div>
-    <!-- <div v-for="(image, index) in product.image_data" :key="index" id="img-wrap">
-      <img :src="image" />
-    </div> -->
     <div id="product-details">
       <h1>{{ product.name }}</h1>
       <h3 id="price">&#8377;{{ product.price }}</h3>
-      <!-- <div class="quantity">
+      <h3 id="price" v-if="product.avail_quantity != 0">Quantity left: {{product.avail_quantity}}</h3>
+      <h3 id="price" v-else style="color: red">Out of stock</h3>
+      <div class="quantity">
           Quantity:
           <span class="quantity">
-            <button @click="updateQuantity(product, -1)" class="quantityBtn">
+            <button @click="updateQuantity(product,-1)" class="quantityBtn">
               -
             </button>
             <input type="text" v-model="quantity" />
@@ -29,14 +29,19 @@
               +
             </button></span
           >
-        </div> -->
+        </div>
+        <br>
       <button @click="addToCart(product)" id="add-to-cart">
         Add to cart
       </button>
       <span v-if="addedToCart">Item add to cart successfully!!</span>
-      <h4>Description</h4>
-      <p>{{ product.description }}</p>
-    </div>
+      <span v-if="noQuantity" style="color: red">{{product.avail_quantity == 0?"Currently this item is out of stock" : "Please select quantity!!"}}</span>
+    </div>  
+  </div>
+  <div class="description">
+      <h4>Description</h4>   
+  <p>{{ product.description }}</p>
+  </div>
   </div>
   <PageNotFound v-else />
 </template>
@@ -63,18 +68,24 @@ export default {
       product: {},
       images: [],
       addedToCart: false,
-      // quantity: 0
+      quantity: 0,
+      noQuantity: false
     };
   },
   methods: {
-    // updateQuantity(product, number){
-    //   this.quantity = this.quantity + number
-      
-    // },
+    updateQuantity(product, number){
+      if(number > 0 && this.quantity != product.avail_quantity){
+        this.quantity = this.quantity + number
+      }
+      else if(number < 0 && this.quantity != 0){
+        this.quantity = this.quantity + number
+      }
+    },
     addToCart(product) {
-      const user = JSON.parse(localStorage.getItem("user"))
+      if(this.quantity != 0){
+        const user = JSON.parse(localStorage.getItem("user"))
       if (!user) {
-        router.push(`/login/${product.product_id}/1`)
+        router.push({path : '/login', query: {productId: product.product_id,quantity: this.quantity}})
       } 
       else if(user && user.user_type == 'admin'){
         alert("Please login as a customer")
@@ -82,18 +93,21 @@ export default {
       else {
         const userId = user.user_id;
         const productId = product.product_id;
-        const num = 1
+        const num = this.quantity
         axios
           .post(`http://localhost:5000/api/users/${userId}/cart/${productId}`,{num})
           .then((this.addedToCart = true))
           .catch((err) => console.log(err));
+      }
+      }
+      else{
+        this.noQuantity = true
       }
     },
   },
   async created() {
     if(this.$route.query.toCart){
       this.addedToCart = true
-      console.log("iiiii",this.addedToCart);
     }
     const id = this.$route.params.product_id;
     const result = await axios.get(`http://localhost:5000/api/products/${id}`);
@@ -118,11 +132,17 @@ export default {
 <style scoped>
 #page-wrap {
   margin-top: 80px;
+  margin-bottom: 0px;
   padding: 16px;
   max-width: 900px;
   /* height: 10px; */
   display: flex;
   align-items: center;
+}
+
+.description{
+  margin: 0px auto;
+  max-width: 900px;
 }
 
 #img-wrap {
@@ -131,7 +151,7 @@ export default {
 }
 
 img {
-  /* width: 400px; */
+  /* width: 300px; */
   height: 400px
 }
 
@@ -151,6 +171,16 @@ span {
   /* text-align: center; */
 }
 
+input[type="text"] {
+  width: 50px;
+  font-size: 16px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 0px;
+  text-align: center;
+  margin: 0px;
+}
+
 .quantity {
   display: flex;
   margin-right: 0px;
@@ -165,13 +195,17 @@ span {
 }
 
 #carousel{
-  width: 400px;
+  width:  400px;  
+}
+
+.carousel__viewport{
+  max-width: 400px;
 }
 
 .carousel__item {
   min-height: 200px;
   box-shadow: 0px 2px 4px #888;
-  width: 500px;
+  width: 400px;
   background-color: var(--vc-clr-white);
   color: var(--vc-clr-white);
   font-size: 20px;

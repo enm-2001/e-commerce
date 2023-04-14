@@ -10,6 +10,7 @@
         class="search-input"
         v-model="searchTerm"
         placeholder="Search..."
+        @keyup.enter="searchProduct(searchTerm)"
       />
       <button class="search-btn" @click="searchProduct(searchTerm)">Search</button>
     </div>
