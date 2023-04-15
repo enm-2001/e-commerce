@@ -3,10 +3,12 @@ const client = require('./config/connection.js')
 var cors = require('cors')
 const fs = require('fs')
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" , limits: {
-    fileSize: 1024 * 1024 * 5, // 5 MB
-    fieldSize: 1024 * 1024 * 5, // 5 MB
-  }});
+const upload = multer({
+    dest: "uploads/", limits: {
+        fileSize: 1024 * 1024 * 5, // 5 MB
+        fieldSize: 1024 * 1024 * 5, // 5 MB
+    }
+});
 const nodemailer = require('nodemailer');
 const Mailgen = require('mailgen');
 // const handlebars = require('handlebars');
@@ -313,10 +315,6 @@ app.post('/api/mail', async (req, res) => {
             table: {
                 data: orderedItems
             },
-            // order_date: order_date,
-            // total_amount: total_amount,
-            // payment_method: payment_method == "cod"? "Cash On Delivery" : "Via Debit/Credit Cart",
-
             outro: "Keep Shopping with us!"
         },
 
