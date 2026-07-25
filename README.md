@@ -42,7 +42,7 @@ This project was developed to gain hands-on experience in building scalable full
 
 ### Frontend
 
-- React.js
+- Vue.js
 - JavaScript
 - HTML5
 - CSS3
@@ -68,7 +68,7 @@ This project was developed to gain hands-on experience in building scalable full
 ## 🏗 Architecture
 
 ```
-React Frontend
+Vue Frontend
         │
         ▼
  REST APIs
